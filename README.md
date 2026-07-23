@@ -1,5 +1,5 @@
 # Machine-Ethics
-Uses GRUs, BERT, LSTMs, and distilbert to predict human moral judgments. More details abut the datasets and can be found at https://github.com/hendrycks/ethics. That repository also contains a leader board. Below I compare how my own models did compared to the best performing model on the leadersboards (best forming model for each dataset in bold):
+Uses GRUs, BERT, LSTMs, and distilbert to predict human moral judgments. The datasets and their details can be found at https://github.com/hendrycks/ethics. That repository also contains a leader board. Below I compare how my own models did compared to the best performing model on the leadersboards (best forming model for each dataset in bold):
 
 
  | Model | Deontology | Justice | Virtue Ethics | Commonsense |
