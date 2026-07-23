@@ -1,17 +1,42 @@
 # Machine-Ethics
-Uses GRUs, BERT, LSTMs, and distilbert to predict human moral judgments. The datasets and their details can be found at https://github.com/hendrycks/ethics. That repository also contains a leader board. Below I compare how my own models did compared to the best performing model on the leadersboards (best forming model for each dataset in bold):
 
+Trained and compared LSTM, GRU, BERT, and DistilBERT models to predict human moral judgments on the ETHICS benchmark (Hendrycks et al., 2021). The dataset and its details are at https://github.com/hendrycks/ethics. The project also includes token-level model interpretability (via `transformers_interpret`) and a deployed Hugging Face demo.
 
- | Model | Deontology | Justice | Virtue Ethics | Commonsense |
+## Results (per-example accuracy on the ETHICS test sets)
+
+| Model | Deontology | Justice | Virtue | Commonsense |
 | --- | --- | --- | --- | --- |
-| Bi-Directional LSTM | 0.696 | 0.641 | 0.69 | 0.723 |
+| Bi-Directional LSTM | 0.696 | 0.641 | 0.690 | 0.723 |
 | GRU | 0.691 | 0.624 | 0.642 | 0.533 |
-| BERT | 0.764 | 0.703 | **0.822** | 0.787 |
-| distilbert | **0.771** | **0.735** | 0.804 | 0.78 |
-| Leaderboard | 0.641 | 0.599 | 0.641 | **0.904** |
+| BERT | 0.764 | 0.703 | 0.822 | 0.787 |
+| DistilBERT | 0.771 | 0.735 | 0.804 | 0.780 |
 
-We can see that BERT and distilbert had the best accuracy of any of my models, and generally outperformed the leaderboard's top model, except on the commonsense dataset. 
+As expected, the fine-tuned transformers (BERT and DistilBERT) clearly outperformed the from-scratch recurrent models (LSTM and GRU).
 
-Building neural networks that can reliably predict (and therefor make) moral judgments is useful in at least two respects: first it may allow for improved decision-making processes by machines. Already neural networks and other forms of artificial intelligence make decisions that can dramatically affect people's lives - self-driving cars, decisions about loans, hiring, and criminal justice sentencing are just some examples where automated decision making may dramatically impact a person's life. Although some decisions in those realms may be adequately handled by hardcoding moral rules into the systems, it is likely that, as automation progresses, machines will be faced with more cases where hardcoded rules either fail to apply to arrive at clearly wrong conclusions (e.g., for a simple example, "do not run a redlight" might be one hardcoded rule which is generally good but could lead to disaster in rare circumstances. In such situations, machines might need to be able to apply some moral reasoning for themselves. 
+## Evaluation caveat (please read before comparing to the ETHICS paper)
 
-The second area where improving automated reasoning may be useful is in improving human moral reasoning. Although the cases in the datasets are supposed to all be cases where there is widespread or universal agreement on right behavior, sometimes people disagree and sometimes this disagreement is due to mistaken reasoning. Just as there can be errors of reasoning in other areas, there can be errors in moral reasoning. Many common logical fallacies, for example, such as appeal to popularity, appeal to nature, and ad hominems routinely appear in moral moral reasoning. There is no reason to think that artificial intelligence cannot improve on human reasoning there, as it has in other areas.
+These figures are **per-example binary accuracy** and are **not directly comparable** to the headline numbers reported in the ETHICS paper. An earlier version of this README compared them to the paper's best models and claimed to beat that leaderboard. That comparison was not valid, for three reasons, and it has been removed:
+
+1. **Metric mismatch.** For the justice, deontology, and virtue tasks, the ETHICS paper reports a stricter grouped (exact-match) score, in which every related item in a group must be classified correctly for the group to count. Per-example accuracy is an easier target, so the numbers above should not be read as outperforming the paper's models. The clearest check is the commonsense morality task, which is scored the same way I scored mine: there my best model (about 0.78) is below the paper's best (about 0.90), as expected.
+2. **Label imbalance on virtue.** Each virtue example contains five candidate statements with one correct, so roughly 80 percent of test rows are negative. A trivial "always predict negative" baseline already scores about 0.80, which is why per-example accuracy is not meaningful for this task and why the paper uses the grouped metric.
+3. **Model-selection leakage.** The recurrent models used the test set as validation data for early stopping, so those test figures are optimistically biased. A clean setup would hold out a separate validation split and evaluate on the test set only once.
+
+A faithful comparison to the paper would re-score justice, deontology, and virtue with the grouped exact-match metric and use a held-out validation split. I would expect the transformer results to remain respectable but to sit at or below the published numbers rather than above them.
+
+## What this project demonstrates
+
+- Fine-tuning and comparing multiple architectures (LSTM, GRU, BERT, DistilBERT) with `ktrain` and Hugging Face.
+- Token-level model interpretability with `transformers_interpret`.
+- Deployment of the best model to Hugging Face Spaces for interactive use: https://huggingface.co/spaces/jeffhaines/Ethical_Judgment_Generator
+
+## Why machine ethics
+
+Building models that can predict human moral judgments is useful in two respects. First, automated systems increasingly make decisions that affect people's lives, from self-driving cars to lending, hiring, and criminal sentencing. Some of these can be handled by hard-coded rules, but as automation grows, systems will meet cases where fixed rules do not apply or give clearly wrong answers. (A rule like "do not run a red light" is generally good but can be disastrous in rare situations.) In such cases, some capacity for moral reasoning becomes valuable.
+
+Second, models like these may help study and improve human moral reasoning. The benchmark cases are meant to be ones with wide agreement, but people still disagree, and some of that disagreement comes from faulty reasoning. Common fallacies such as appeal to popularity, appeal to nature, and ad hominem appear in moral arguments as they do elsewhere, and tools that surface them could be useful.
+
+## Repository contents
+
+- `Commonsense_Ethics.ipynb`, `Deontology.ipynb`, `Justice.ipynb`, `Virtue_Ethics.ipynb`: training and evaluation for each task.
+- `commonsense_ethics/`: saved DistilBERT model parameters and config.
+- Data: the ETHICS benchmark (https://github.com/hendrycks/ethics), not redistributed here.
